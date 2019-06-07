@@ -35,6 +35,9 @@ void setup() {
 
   irrecv.enableIRIn();//使红外能接收
 
+  digitalWrite(AIN1, HIGH);
+  digitalWrite(BIN1, HIGH);
+
   digitalWrite(AIN2, LOW);
   digitalWrite(BIN2, LOW);
 }
@@ -135,15 +138,13 @@ void light()
 
   BV_set(CCT);
   if (flag) {
-    digitalWrite(AIN1, HIGH);
-    digitalWrite(BIN1, HIGH);
 
     analogWrite(PWMA, BV_B);
     analogWrite(PWMB, BV_R);
   }
   else {
-    digitalWrite(BIN1, LOW);
-    digitalWrite(AIN1, LOW);
+    analogWrite(PWMA, 0);
+    analogWrite(PWMB, 0);
   }
 
 
