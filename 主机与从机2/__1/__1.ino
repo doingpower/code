@@ -47,10 +47,7 @@ void loop() {
 
   if (irrecv.decode(&results))
   {
-    digitalWrite(AIN1, HIGH);
-    digitalWrite(AIN2, LOW);
-    digitalWrite(BIN1, HIGH);
-    digitalWrite(BIN2, LOW);
+
     digitalWrite(TrigPin, LOW); //低高低电平发一个短时间脉冲去TrigPin
     delayMicroseconds(2);
     digitalWrite(TrigPin, HIGH);
@@ -60,14 +57,16 @@ void loop() {
     cm = pulseIn(EchoPin, HIGH) / 58.0; //将回拨时间换算成cm
     cm = (int(cm * 100.0)) / 100.0; //保留两位小数
   }//关灯后才开始测距
-  if (results.value == 0x123456 || (cm > 30 && getup == 1))
+  if (results.value == 0x00FF906F || (cm > 30 && getup == 1))
   {
     /*Serial.println(results.value,HEX);//以16进制换行输出接收代码
       Serial.println();//为了便于观看加一个空行*/
-    digitalWrite(AIN1, HIGH);
-    digitalWrite(AIN2, LOW);
-    digitalWrite(BIN1, HIGH);
-    digitalWrite(BIN2, LOW);
+    if (results.value == 0x00FF906F) {
+      results.value = 0;
+    }
+    analogWrite(PWMA, BV_B);
+    analogWrite(PWMB, BV_R);
+
     digitalWrite(TrigPin, LOW); //低高低电平发一个短时间脉冲去TrigPin
     delayMicroseconds(2);
     digitalWrite(TrigPin, HIGH);
@@ -80,13 +79,13 @@ void loop() {
   //关灯上床时因检测不到人但是还未躺下半夜有人回寝室情况灯带亮当人躺下时记录最后一次cm值
   else
   {
-    digitalWrite(AIN1, LOW);
-    digitalWrite(AIN2, LOW);
-    digitalWrite(BIN1, LOW);
-    digitalWrite(BIN2, LOW);
+    analogWrite(PWMA, 0);
+    analogWrite(PWMB, 0);
   }//未关灯或都躺下且无外来人时灯带熄灭
-  digitalWrite(AIN1, HIGH);
-  digitalWrite(BIN1, HIGH);
+
+  analogWrite(PWMA, BV_B);
+  analogWrite(PWMB, BV_R);
+
   digitalWrite(TrigPin, LOW); //低高低电平发一个短时间脉冲去TrigPin
   delayMicroseconds(2);
   digitalWrite(TrigPin, HIGH);
@@ -98,23 +97,19 @@ void loop() {
   //人躺下后时刻更新cm值
   if (cm > 30 && (!irrecv.decode(&results)) && getup == 1)
   {
-    digitalWrite(AIN1, HIGH);
-    digitalWrite(AIN2, LOW);
-    digitalWrite(BIN1, HIGH);
-    digitalWrite(BIN2, LOW);
+
+    analogWrite(PWMA, BV_B);
+    analogWrite(PWMB, BV_R);
     getup = 0;
   }//起夜时灯带亮
   if ((getup == 0) && !irrecv.decode(&results))
   {
-    digitalWrite(AIN1, LOW);
-    digitalWrite(AIN2, LOW);
-    digitalWrite(BIN1, LOW);
-    digitalWrite(BIN2, LOW);    //起夜进入阳台后灯带熄灭
+    analogWrite(PWMA, 0);
+    analogWrite(PWMB, 0);    //起夜进入阳台后灯带熄灭
     if (irrecv.decode(&results))
-      digitalWrite(AIN1, HIGH);
-    digitalWrite(AIN2, LOW);
-    digitalWrite(BIN1, HIGH);
-    digitalWrite(BIN2, LOW);//从阳台出来后灯亮
+ 
+    analogWrite(PWMA, BV_B);
+    analogWrite(PWMB, BV_R);//从阳台出来后灯亮
     getup = 1;
   }
 
@@ -122,6 +117,7 @@ void loop() {
   // put your main code here, to run repeatedly:
 
 }
+
 void light()
 {
   String inString = "";
@@ -146,8 +142,6 @@ void light()
     analogWrite(PWMA, 0);
     analogWrite(PWMB, 0);
   }
-
-
 }
 
 void BV_set(int cct)
